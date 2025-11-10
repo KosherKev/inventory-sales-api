@@ -1,0 +1,450 @@
+{
+  "info": {
+    "name": "Inventory & Sales API",
+    "description": "API endpoints for Inventory and Sales Management System",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "locationId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"role\": \"staff\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data.token) {",
+                  "    pm.environment.set('token', jsonData.data.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}"
+                }
+              ]
+            },
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Locations",
+      "item": [
+        {
+          "name": "Create Location",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const jsonData = pm.response.json();",
+                  "if (jsonData.data && jsonData.data._id) {",
+                  "    pm.environment.set('locationId', jsonData.data._id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Main Store\",\n  \"address\": \"123 Main Street, City\",\n  \"description\": \"Primary retail location\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/locations",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations"]
+            }
+          }
+        },
+        {
+          "name": "Get All Locations",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/locations",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations"]
+            }
+          }
+        },
+        {
+          "name": "Get Single Location",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/locations/{{locationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "{{locationId}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Location",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Store Name\",\n  \"address\": \"456 New Street\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/locations/{{locationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "{{locationId}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Location",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/locations/{{locationId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "{{locationId}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Inventory",
+      "item": [
+        {
+          "name": "Add Inventory Item",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"itemName\": \"Product A\",\n  \"unitCost\": 25.50,\n  \"quantity\": 100,\n  \"description\": \"High quality product\",\n  \"sku\": \"PROD-A-001\",\n  \"category\": \"Electronics\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/locations/{{locationId}}/inventory",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "{{locationId}}", "inventory"]
+            }
+          }
+        },
+        {
+          "name": "Get All Inventory",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/locations/{{locationId}}/inventory?isActive=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "{{locationId}}", "inventory"],
+              "query": [
+                {
+                  "key": "isActive",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Single Inventory Item",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/locations/{{locationId}}/inventory/:itemId",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "{{locationId}}", "inventory", ":itemId"],
+              "variable": [
+                {
+                  "key": "itemId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Inventory Item",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 150,\n  \"unitCost\": 26.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/locations/{{locationId}}/inventory/:itemId",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "{{locationId}}", "inventory", ":itemId"],
+              "variable": [
+                {
+                  "key": "itemId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Inventory Item",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/locations/{{locationId}}/inventory/:itemId",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "{{locationId}}", "inventory", ":itemId"],
+              "variable": [
+                {
+                  "key": "itemId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Sales",
+      "item": [
+        {
+          "name": "Add Daily Sales",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"saleDate\": \"2024-01-15\",\n  \"totalSales\": 1250.00,\n  \"notes\": \"Good sales day\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/locations/{{locationId}}/sales",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "{{locationId}}", "sales"]
+            }
+          }
+        },
+        {
+          "name": "Get All Sales",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/locations/{{locationId}}/sales?limit=30",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "{{locationId}}", "sales"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "30"
+                },
+                {
+                  "key": "startDate",
+                  "value": "2024-01-01",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "2024-01-31",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Sales Summary",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/locations/{{locationId}}/sales/summary",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "{{locationId}}", "sales", "summary"],
+              "query": [
+                {
+                  "key": "startDate",
+                  "value": "2024-01-01",
+                  "disabled": true
+                },
+                {
+                  "key": "endDate",
+                  "value": "2024-01-31",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Single Sales Record",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/locations/{{locationId}}/sales/:salesId",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "{{locationId}}", "sales", ":salesId"],
+              "variable": [
+                {
+                  "key": "salesId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Sales Record",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"totalSales\": 1300.00,\n  \"notes\": \"Updated amount\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/locations/{{locationId}}/sales/:salesId",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "{{locationId}}", "sales", ":salesId"],
+              "variable": [
+                {
+                  "key": "salesId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Sales Record",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{baseUrl}}/locations/{{locationId}}/sales/:salesId",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "{{locationId}}", "sales", ":salesId"],
+              "variable": [
+                {
+                  "key": "salesId",
+                  "value": ""
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
