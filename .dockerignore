@@ -1,0 +1,16 @@
+# Prevent unnecessary files from being included in Docker image
+node_modules
+npm-debug.log
+yarn.lock
+package-lock.json
+.git
+.gitignore
+.DS_Store
+.vscode
+.idea
+.env
+coverage/
+dist/
+test/
+Dockerfile
+.dockerignore

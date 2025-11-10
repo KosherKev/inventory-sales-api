@@ -449,3 +449,62 @@ ISC
 ## Support
 
 For issues and questions, please open an issue on the repository.
+
+## Deployment: Docker & Google Cloud Run
+
+### Build and Run Locally with Docker
+
+1. Build the image:
+   ```bash
+   docker build -t inventory-sales-api .
+   ```
+
+2. Run the container (provide required environment variables):
+   ```bash
+   docker run -p 8080:8080 \
+     -e NODE_ENV=production \
+     -e MONGODB_URI="mongodb+srv://<user>:<pass>@<cluster>/<db>?retryWrites=true&w=majority" \
+     -e JWT_SECRET="your_secure_jwt_secret" \
+     -e CORS_ORIGIN="*" \
+     inventory-sales-api
+   ```
+
+3. Verify health:
+   ```bash
+   curl http://localhost:8080/health
+   ```
+
+The API base URL in Docker will be `http://localhost:8080/api`.
+
+### Deploy to Google Cloud Run
+
+Prerequisites:
+- `gcloud` CLI installed and authenticated (`gcloud auth login`)
+- A Google Cloud project selected (`gcloud config set project <PROJECT_ID>`)
+
+1. Build and push the container image using Cloud Build:
+   ```bash
+   gcloud builds submit --tag gcr.io/<PROJECT_ID>/inventory-sales-api ./inventory-sales-api
+   ```
+
+2. Deploy to Cloud Run:
+   ```bash
+   gcloud run deploy inventory-sales-api \
+     --image gcr.io/<PROJECT_ID>/inventory-sales-api \
+     --platform managed \
+     --region us-central1 \
+     --allow-unauthenticated \
+     --set-env-vars NODE_ENV=production,JWT_SECRET=your_secure_jwt_secret,CORS_ORIGIN=*,MONGODB_URI=mongodb+srv://<user>:<pass>@<cluster>/<db>?retryWrites=true&w=majority
+   ```
+
+Notes:
+- Cloud Run injects `PORT` automatically (defaults to `8080`); the app reads `process.env.PORT`.
+- If using MongoDB Atlas, ensure network access allows connections from Cloud Run.
+- Set `CORS_ORIGIN` to your frontend domain (e.g., Cloud Run URL) rather than `*` for production.
+
+### Update Flutter Base URL
+
+After deployment, update the Flutter app’s API base URL in `inventory_sales_app/lib/utils/constants.dart`:
+```dart
+static const String apiBaseUrl = 'https://<your-cloud-run-url>/api';
+```
