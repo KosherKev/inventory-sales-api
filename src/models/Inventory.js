@@ -33,12 +33,16 @@ const inventorySchema = new mongoose.Schema(
     sku: {
       type: String,
       sparse: true,
-      unique: true,
       trim: true
     },
     category: {
       type: String,
       trim: true
+    },
+    reorderThreshold: {
+      type: Number,
+      default: 0,
+      min: [0, 'Reorder threshold cannot be negative']
     },
     isActive: {
       type: Boolean,
@@ -63,5 +67,7 @@ inventorySchema.pre('save', function (next) {
 // Indexes
 inventorySchema.index({ locationId: 1, itemName: 1 });
 inventorySchema.index({ locationId: 1, isActive: 1 });
+// Allow same SKU across different locations; enforce per-location uniqueness
+inventorySchema.index({ locationId: 1, sku: 1 }, { unique: true, sparse: true });
 
 module.exports = mongoose.model('Inventory', inventorySchema);

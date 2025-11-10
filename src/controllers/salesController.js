@@ -48,7 +48,7 @@ exports.addDailySales = async (req, res) => {
 exports.getSales = async (req, res) => {
   try {
     const { locationId } = req.params;
-    const { startDate, endDate, limit = 30 } = req.query;
+    const { startDate, endDate, page = 1, limit = 25, sort = 'saleDate', order = 'desc' } = req.query;
 
     const filter = { locationId };
 
@@ -65,27 +65,40 @@ exports.getSales = async (req, res) => {
       }
     }
 
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const sortOrder = String(order).toLowerCase() === 'asc' ? 1 : -1;
+
+    const total = await DailySales.countDocuments(filter);
+
     const sales = await DailySales.find(filter)
       .populate('recordedBy', 'firstName lastName')
-      .sort({ saleDate: -1 })
-      .limit(parseInt(limit));
+      .sort({ [sort]: sortOrder })
+      .skip((pageNum - 1) * limitNum)
+      .limit(limitNum);
 
     // Calculate total sales
     const totalRevenue = sales.reduce((sum, sale) => sum + sale.totalSales, 0);
 
     res.status(200).json({
-      success: true,
-      count: sales.length,
+      data: sales,
+      meta: {
+        total,
+        page: pageNum,
+        totalPages: Math.ceil(total / limitNum),
+        limit: limitNum
+      },
       summary: {
         totalRevenue
-      },
-      data: sales
+      }
     });
   } catch (error) {
     res.status(500).json({
-      success: false,
-      message: 'Error fetching sales records',
-      error: error.message
+      error: {
+        code: 'SALES_FETCH_ERROR',
+        message: 'Error fetching sales records',
+        details: error.message
+      }
     });
   }
 };
@@ -217,11 +230,10 @@ exports.getSalesSummary = async (req, res) => {
     const lowestSalesDay = sortedSales[sortedSales.length - 1] || null;
 
     res.status(200).json({
-      success: true,
       data: {
         totalRevenue,
         averageDailySales,
-        numberOfDays: sales.length,
+        totalDays: sales.length,
         highestSalesDay: highestSalesDay ? {
           date: highestSalesDay.saleDate,
           amount: highestSalesDay.totalSales
@@ -234,9 +246,11 @@ exports.getSalesSummary = async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({
-      success: false,
-      message: 'Error generating sales summary',
-      error: error.message
+      error: {
+        code: 'SALES_SUMMARY_ERROR',
+        message: 'Error generating sales summary',
+        details: error.message
+      }
     });
   }
 };

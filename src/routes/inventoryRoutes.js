@@ -5,7 +5,12 @@ const {
   getInventory,
   getInventoryItem,
   updateInventoryItem,
-  deleteInventoryItem
+  deleteInventoryItem,
+  getInventorySummary,
+  adjustInventoryItem,
+  getLowStock,
+  transferInventoryItem,
+  getInventoryMovements
 } = require('../controllers/inventoryController');
 const { protect } = require('../middleware/auth');
 const { checkLocationAccess, checkPermission } = require('../middleware/locationAccess');
@@ -13,6 +18,11 @@ const { checkLocationAccess, checkPermission } = require('../middleware/location
 // All routes require authentication and location access
 router.use(protect);
 router.use(checkLocationAccess);
+
+// Summary endpoint
+router.get('/summary', getInventorySummary);
+// Low stock endpoint
+router.get('/low-stock', getLowStock);
 
 router.route('/')
   .get(getInventory)
@@ -22,5 +32,12 @@ router.route('/:itemId')
   .get(getInventoryItem)
   .put(checkPermission('canManageInventory'), updateInventoryItem)
   .delete(checkPermission('canManageInventory'), deleteInventoryItem);
+
+// Adjust item quantity
+router.post('/:itemId/adjust', checkPermission('canManageInventory'), adjustInventoryItem);
+// Transfer item to another location
+router.post('/:itemId/transfer', checkPermission('canManageInventory'), transferInventoryItem);
+// List movements
+router.get('/:itemId/movements', getInventoryMovements);
 
 module.exports = router;

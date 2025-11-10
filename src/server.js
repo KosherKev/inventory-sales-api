@@ -9,6 +9,9 @@ const authRoutes = require('./routes/authRoutes');
 const locationRoutes = require('./routes/locationRoutes');
 const inventoryRoutes = require('./routes/inventoryRoutes');
 const salesRoutes = require('./routes/salesRoutes');
+const salesOrderRoutes = require('./routes/salesOrderRoutes');
+const supplierRoutes = require('./routes/supplierRoutes');
+const purchaseOrderRoutes = require('./routes/purchaseOrderRoutes');
 
 // Initialize express app
 const app = express();
@@ -45,6 +48,9 @@ app.use('/api/locations', locationRoutes);
 // Nested routes for inventory and sales under locations
 app.use('/api/locations/:locationId/inventory', inventoryRoutes);
 app.use('/api/locations/:locationId/sales', salesRoutes);
+app.use('/api/locations/:locationId/sales-orders', salesOrderRoutes);
+app.use('/api/locations/:locationId/suppliers', supplierRoutes);
+app.use('/api/locations/:locationId/purchase-orders', purchaseOrderRoutes);
 
 // 404 handler
 app.use((req, res) => {
