@@ -7,9 +7,9 @@ FROM node:18-alpine
 WORKDIR /usr/src/app
 
 # Install app dependencies
-# Using npm ci for reproducible installs and to avoid devDependencies in production
+# Using npm ci for reproducible installs and omitting devDependencies in production
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm ci --omit=dev
 
 # Bundle app source
 COPY src ./src
