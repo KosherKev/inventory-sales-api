@@ -12,6 +12,7 @@ const salesRoutes = require('./routes/salesRoutes');
 const salesOrderRoutes = require('./routes/salesOrderRoutes');
 const supplierRoutes = require('./routes/supplierRoutes');
 const purchaseOrderRoutes = require('./routes/purchaseOrderRoutes');
+const reportsRoutes = require('./routes/reportsRoutes');
 
 // Initialize express app
 const app = express();
@@ -51,6 +52,7 @@ app.use('/api/locations/:locationId/sales', salesRoutes);
 app.use('/api/locations/:locationId/sales-orders', salesOrderRoutes);
 app.use('/api/locations/:locationId/suppliers', supplierRoutes);
 app.use('/api/locations/:locationId/purchase-orders', purchaseOrderRoutes);
+app.use('/api/locations/:locationId/reports', reportsRoutes);
 
 // 404 handler
 app.use((req, res) => {

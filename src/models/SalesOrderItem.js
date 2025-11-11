@@ -16,10 +16,6 @@ const salesOrderItemSchema = new mongoose.Schema(
       required: true,
       trim: true
     },
-    sku: {
-      type: String,
-      trim: true
-    },
     unitPrice: {
       type: Number,
       required: true,

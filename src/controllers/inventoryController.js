@@ -8,16 +8,19 @@ const LocationUser = require('../models/LocationUser');
 exports.addInventoryItem = async (req, res) => {
   try {
     const { locationId } = req.params;
-    const { itemName, unitCost, quantity, description, sku, category } = req.body;
+    const { itemName, unitCost, sellingPrice, quantity, description } = req.body;
+
+    if (sellingPrice === undefined) {
+      return res.status(400).json({ success: false, message: 'Selling price is required' });
+    }
 
     const inventoryItem = await Inventory.create({
       locationId,
       itemName,
       unitCost,
+      sellingPrice,
       quantity,
       description,
-      sku,
-      category,
       addedBy: req.user._id
     });
 
@@ -41,7 +44,7 @@ exports.addInventoryItem = async (req, res) => {
 exports.getInventory = async (req, res) => {
   try {
     const { locationId } = req.params;
-    const { isActive, category, page = 1, limit = 25, sort = 'createdAt', order = 'desc', q } = req.query;
+    const { isActive, page = 1, limit = 25, sort = 'createdAt', order = 'desc', q } = req.query;
 
     const filter = { locationId };
 
@@ -52,13 +55,9 @@ exports.getInventory = async (req, res) => {
       filter.isActive = true;
     }
 
-    if (category) {
-      filter.category = category;
-    }
-
     if (q) {
       const regex = new RegExp(String(q), 'i');
-      filter.$or = [{ itemName: regex }, { sku: regex }];
+      filter.$or = [{ itemName: regex }, { description: regex }];
     }
 
     const pageNum = parseInt(page);
@@ -107,7 +106,7 @@ exports.getInventory = async (req, res) => {
 exports.getInventorySummary = async (req, res) => {
   try {
     const { locationId } = req.params;
-    const { isActive, category, q } = req.query;
+    const { isActive, q } = req.query;
 
     const filter = { locationId };
 
@@ -117,13 +116,9 @@ exports.getInventorySummary = async (req, res) => {
       filter.isActive = true;
     }
 
-    if (category) {
-      filter.category = category;
-    }
-
     if (q) {
       const regex = new RegExp(String(q), 'i');
-      filter.$or = [{ itemName: regex }, { sku: regex }];
+      filter.$or = [{ itemName: regex }, { description: regex }];
     }
 
     const items = await Inventory.find(filter).select('quantity totalCost');
@@ -183,7 +178,7 @@ exports.getInventoryItem = async (req, res) => {
 exports.updateInventoryItem = async (req, res) => {
   try {
     const { itemId } = req.params;
-    const { itemName, unitCost, quantity, description, sku, category } = req.body;
+    const { itemName, unitCost, sellingPrice, quantity, description } = req.body;
 
     const item = await Inventory.findById(itemId);
 
@@ -197,10 +192,9 @@ exports.updateInventoryItem = async (req, res) => {
     // Update fields
     if (itemName !== undefined) item.itemName = itemName;
     if (unitCost !== undefined) item.unitCost = unitCost;
+    if (sellingPrice !== undefined) item.sellingPrice = sellingPrice;
     if (quantity !== undefined) item.quantity = quantity;
     if (description !== undefined) item.description = description;
-    if (sku !== undefined) item.sku = sku;
-    if (category !== undefined) item.category = category;
 
     await item.save();
 
@@ -374,23 +368,16 @@ exports.transferInventoryItem = async (req, res) => {
       return res.status(403).json({ success: false, message: 'You do not have permission to manage inventory at the destination location' });
     }
 
-    // Find or create destination item by SKU (preferred), else by name
-    let destItem = null;
-    if (sourceItem.sku) {
-      destItem = await Inventory.findOne({ locationId: toLocationId, sku: sourceItem.sku });
-    }
-    if (!destItem) {
-      destItem = await Inventory.findOne({ locationId: toLocationId, itemName: sourceItem.itemName });
-    }
+    // Find or create destination item by name
+    let destItem = await Inventory.findOne({ locationId: toLocationId, itemName: sourceItem.itemName });
     if (!destItem) {
       destItem = await Inventory.create({
         locationId: toLocationId,
         itemName: sourceItem.itemName,
         unitCost: sourceItem.unitCost,
+        sellingPrice: sourceItem.sellingPrice,
         quantity: 0,
         description: sourceItem.description,
-        sku: sourceItem.sku,
-        category: sourceItem.category,
         isActive: true,
         addedBy: req.user._id
       });

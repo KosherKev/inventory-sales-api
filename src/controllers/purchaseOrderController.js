@@ -58,7 +58,6 @@ exports.createPurchaseOrder = async (req, res) => {
         purchaseOrderId: po._id,
         itemId: p.inv._id,
         itemName: p.inv.itemName,
-        sku: p.inv.sku,
         quantity: p.qty,
         unitCost: p.unitCost,
         lineTotal: p.lineTotal

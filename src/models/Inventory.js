@@ -17,6 +17,11 @@ const inventorySchema = new mongoose.Schema(
       required: [true, 'Unit cost is required'],
       min: [0, 'Unit cost cannot be negative']
     },
+    sellingPrice: {
+      type: Number,
+      required: [true, 'Selling price is required'],
+      min: [0, 'Selling price cannot be negative']
+    },
     quantity: {
       type: Number,
       required: [true, 'Quantity is required'],
@@ -27,15 +32,6 @@ const inventorySchema = new mongoose.Schema(
       default: 0
     },
     description: {
-      type: String,
-      trim: true
-    },
-    sku: {
-      type: String,
-      sparse: true,
-      trim: true
-    },
-    category: {
       type: String,
       trim: true
     },
@@ -67,7 +63,6 @@ inventorySchema.pre('save', function (next) {
 // Indexes
 inventorySchema.index({ locationId: 1, itemName: 1 });
 inventorySchema.index({ locationId: 1, isActive: 1 });
-// Allow same SKU across different locations; enforce per-location uniqueness
-inventorySchema.index({ locationId: 1, sku: 1 }, { unique: true, sparse: true });
+// Removed SKU-related index after schema simplification
 
 module.exports = mongoose.model('Inventory', inventorySchema);

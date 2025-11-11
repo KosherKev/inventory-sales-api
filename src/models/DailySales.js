@@ -11,6 +11,11 @@ const dailySalesSchema = new mongoose.Schema(
       type: Date,
       required: [true, 'Sale date is required']
     },
+    paymentMethod: {
+      type: String,
+      enum: ['cash', 'momo'],
+      required: [true, 'Payment method is required']
+    },
     totalSales: {
       type: Number,
       required: [true, 'Total sales amount is required'],
@@ -30,8 +35,7 @@ const dailySalesSchema = new mongoose.Schema(
   }
 );
 
-// Compound unique index - one sale record per location per day
-dailySalesSchema.index({ locationId: 1, saleDate: 1 }, { unique: true });
+// Allow multiple sale entries per day; remove unique constraint
 // Index for querying recent sales
 dailySalesSchema.index({ locationId: 1, saleDate: -1 });
 

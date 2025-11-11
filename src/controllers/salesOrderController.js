@@ -63,7 +63,6 @@ exports.createSalesOrder = async (req, res) => {
         salesOrderId: order._id,
         itemId: p.inv._id,
         itemName: p.inv.itemName,
-        sku: p.inv.sku,
         unitPrice: p.unitPrice,
         quantity: p.qty,
         lineTotal: p.lineTotal

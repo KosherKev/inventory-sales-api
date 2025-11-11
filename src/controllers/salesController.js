@@ -6,15 +6,20 @@ const DailySales = require('../models/DailySales');
 exports.addDailySales = async (req, res) => {
   try {
     const { locationId } = req.params;
-    const { saleDate, totalSales, notes } = req.body;
+    const { saleDate, totalSales, paymentMethod, notes } = req.body;
 
     // Convert saleDate to start of day (midnight) for consistency
     const date = new Date(saleDate);
     date.setHours(0, 0, 0, 0);
 
+    if (!paymentMethod || !['cash', 'momo'].includes(String(paymentMethod))) {
+      return res.status(400).json({ success: false, message: 'Valid payment method is required (cash or momo)' });
+    }
+
     const salesRecord = await DailySales.create({
       locationId,
       saleDate: date,
+      paymentMethod,
       totalSales,
       notes,
       recordedBy: req.user._id
@@ -26,13 +31,7 @@ exports.addDailySales = async (req, res) => {
       data: salesRecord
     });
   } catch (error) {
-    // Handle duplicate entry (same date for same location)
-    if (error.code === 11000) {
-      return res.status(400).json({
-        success: false,
-        message: 'Sales record for this date already exists. Please update the existing record instead.'
-      });
-    }
+    // No unique date constraint; return generic error
 
     res.status(500).json({
       success: false,
@@ -139,7 +138,7 @@ exports.getSalesRecord = async (req, res) => {
 exports.updateDailySales = async (req, res) => {
   try {
     const { salesId } = req.params;
-    const { totalSales, notes } = req.body;
+    const { totalSales, paymentMethod, notes } = req.body;
 
     const sale = await DailySales.findById(salesId);
 
@@ -152,6 +151,7 @@ exports.updateDailySales = async (req, res) => {
 
     // Update fields
     if (totalSales !== undefined) sale.totalSales = totalSales;
+    if (paymentMethod !== undefined) sale.paymentMethod = paymentMethod;
     if (notes !== undefined) sale.notes = notes;
 
     await sale.save();
