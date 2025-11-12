@@ -30,10 +30,55 @@ exports.addInventoryItem = async (req, res) => {
       data: inventoryItem
     });
   } catch (error) {
+    // Provide clearer feedback for common failure modes
+    if (error && (error.name === 'ValidationError')) {
+      const fieldErrors = Object.values(error.errors || {}).map(e => ({
+        field: e.path,
+        message: e.message,
+        kind: e.kind,
+        value: e.value
+      }));
+      console.error('Inventory ValidationError', { message: error.message, fieldErrors });
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed when adding inventory item',
+        error: error.message,
+        details: { fieldErrors }
+      });
+    }
+    // Handle invalid ObjectId casts (e.g., bad locationId or addedBy)
+    if (error && (error.name === 'CastError')) {
+      const castDetails = { path: error.path, value: error.value, kind: error.kind };
+      console.error('Inventory CastError', castDetails);
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid identifier provided (locationId or related references)',
+        error: error.message,
+        details: castDetails
+      });
+    }
+    // Handle unique index conflicts (e.g., Atlas may have a unique index on {locationId,itemName})
+    if (error && (error.code === 11000 || String(error.message).includes('E11000'))) {
+      const dupDetails = {
+        indexName: error?.keyPattern ? Object.keys(error.keyPattern).join('_') : undefined,
+        keyPattern: error?.keyPattern,
+        keyValue: error?.keyValue,
+        message: error.message
+      };
+      console.error('Inventory DuplicateKey', dupDetails);
+      return res.status(409).json({
+        success: false,
+        message: 'An item with the same name already exists for this location',
+        error: error.message,
+        details: dupDetails
+      });
+    }
+    console.error('Inventory Create Error', { name: error?.name, code: error?.code, message: error?.message });
     res.status(500).json({
       success: false,
       message: 'Error adding inventory item',
-      error: error.message
+      error: error.message,
+      details: { name: error?.name, code: error?.code }
     });
   }
 };

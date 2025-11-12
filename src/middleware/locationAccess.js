@@ -19,9 +19,12 @@ exports.checkLocationAccess = async (req, res, next) => {
     });
 
     if (!locationUser) {
+      const details = { userId: req.user?._id, locationId };
+      console.warn('Location access denied', details);
       return res.status(403).json({
         success: false,
-        message: 'You do not have access to this location'
+        message: 'You do not have access to this location',
+        details
       });
     }
 
@@ -29,6 +32,14 @@ exports.checkLocationAccess = async (req, res, next) => {
     req.locationUser = locationUser;
     next();
   } catch (error) {
+    if (error && error.name === 'CastError') {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid locationId format',
+        error: error.message,
+        details: { path: error.path, value: error.value, kind: error.kind }
+      });
+    }
     return res.status(500).json({
       success: false,
       message: 'Error checking location access',
